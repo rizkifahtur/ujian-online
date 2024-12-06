@@ -94,6 +94,9 @@
     import Datepicker from '@vuepic/vue-datepicker';
     import '@vuepic/vue-datepicker/dist/main.css';
 
+    //import moment for date formatting
+    import moment from 'moment';
+
     export default {
 
         //layout
@@ -123,30 +126,30 @@
                 end_time: '',
             });
 
-            //method "submit"
-            const submit = () => {
+                //define submit method
+                const submit = () => {
+                    //send data to server
+                    router.post('/admin/exam_sessions', {
+                        //data
+                        title: form.title,
+                        exam_id: form.exam_id,
+                        start_time: moment(form.start_time).format('YYYY-MM-DD HH:mm:ss'),
+                        end_time: moment(form.end_time).format('YYYY-MM-DD HH:mm:ss'),
+                    }, {
+                        onSuccess: () => {
+                            //show success alert
+                            Swal.fire({
+                                title: 'Success!',
+                                text: 'Sesi Ujian Berhasil Disimpan!.',
+                                icon: 'success',
+                                showConfirmButton: false,
+                                timer: 2000
+                            });
+                        },
+                    });
+                };
 
-                //send data to server
-                router.post('/admin/exam_sessions', {
-                    //data
-                    title: form.title,
-                    exam_id: form.exam_id,
-                    start_time: form.start_time,
-                    end_time: form.end_time,
-                }, {
-                    onSuccess: () => {
-                        //show success alert
-                        Swal.fire({
-                            title: 'Success!',
-                            text: 'Sesi Ujian Berhasil Disimpan!.',
-                            icon: 'success',
-                            showConfirmButton: false,
-                            timer: 2000
-                        });
-                    },
-                });
 
-            }
 
             //return
             return {

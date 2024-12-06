@@ -90,6 +90,9 @@
     //import sweet alert2
     import Swal from 'sweetalert2';
 
+    //import date-fns for date formatting
+    import { format } from 'date-fns';
+
     //import datepicker
     import Datepicker from '@vuepic/vue-datepicker';
     import '@vuepic/vue-datepicker/dist/main.css';
@@ -129,11 +132,10 @@
 
                 //send data to server
                 router.put(`/admin/exam_sessions/${props.exam_session.id}`, {
-                    //data
-                    title: form.title,
                     exam_id: form.exam_id,
-                    start_time: form.start_time,
-                    end_time: form.end_time,
+                    title : form.title,
+                    start_time: format(new Date(form.start_time), 'yyyy-MM-dd HH:mm:ss'),
+                    end_time: format(new Date(form.end_time), 'yyyy-MM-dd HH:mm:ss'),
                 }, {
                     onSuccess: () => {
                         //show success alert
@@ -146,8 +148,7 @@
                         });
                     },
                 });
-
-            }
+                }
 
             //return
             return {

@@ -17,6 +17,7 @@
         "@tinymce/tinymce-vue": "^4.0.7",
         "@vitejs/plugin-vue": "^5.0.4",
         "@vuepic/vue-datepicker": "^3.2.2",
+        "moment": "^2.30.1",
         "summernote": "^0.9.1",
         "vue": "^3.4.21",
         "vue-sweetalert2": "^5.0.2"

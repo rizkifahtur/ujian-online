@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\ExamResultController;
 
 //prefix "admin"
 Route::prefix('admin')->group(function () {
@@ -119,3 +120,5 @@ Route::prefix('student')->group(function () {
         Route::get('/exam-result/{exam_group_id}', [App\Http\Controllers\Student\ExamController::class, 'resultExam'])->name('student.exams.resultExam');
     });
 });
+
+Route::post('/exam-results', [ExamResultController::class, 'store']);
