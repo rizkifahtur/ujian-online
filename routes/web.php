@@ -12,10 +12,10 @@ Route::prefix('admin')->group(function () {
         //route dashboard
         Route::get('/dashboard', App\Http\Controllers\Admin\DashboardController::class)->name('admin.dashboard');
 
-        //route resource lessons    
+        //route resource lessons
         Route::resource('/lessons', \App\Http\Controllers\Admin\LessonController::class, ['as' => 'admin']);
 
-        //route resource classrooms    
+        //route resource classrooms
         Route::resource('/classrooms', \App\Http\Controllers\Admin\ClassroomController::class, ['as' => 'admin']);
 
         //route student import
@@ -24,10 +24,10 @@ Route::prefix('admin')->group(function () {
         //route student store import
         Route::post('/students/import', [\App\Http\Controllers\Admin\StudentController::class, 'storeImport'])->name('admin.students.storeImport');
 
-        //route resource students    
+        //route resource students
         Route::resource('/students', \App\Http\Controllers\Admin\StudentController::class, ['as' => 'admin']);
 
-        //route resource exams    
+        //route resource exams
         Route::resource('/exams', \App\Http\Controllers\Admin\ExamController::class, ['as' => 'admin']);
 
         //custom route for create question exam
@@ -51,7 +51,7 @@ Route::prefix('admin')->group(function () {
         //route student import
         Route::post('/exams/{exam}/questions/import', [\App\Http\Controllers\Admin\ExamController::class, 'storeImport'])->name('admin.exam.questionStoreImport');
 
-        //route resource exam_sessions    
+        //route resource exam_sessions
         Route::resource('/exam_sessions', \App\Http\Controllers\Admin\ExamSessionController::class, ['as' => 'admin']);
 
         //custom route for enrolle create
@@ -65,6 +65,8 @@ Route::prefix('admin')->group(function () {
 
         //route index reports
         Route::get('/reports', [\App\Http\Controllers\Admin\ReportController::class, 'index'])->name('admin.reports.index');
+
+        Route::get('/reports/show/{id}', [\App\Http\Controllers\Admin\ReportController::class, 'show'])->name('admin.reports.show');
 
         //route index reports filter
         Route::get('/reports/filter', [\App\Http\Controllers\Admin\ReportController::class, 'filter'])->name('admin.reports.filter');

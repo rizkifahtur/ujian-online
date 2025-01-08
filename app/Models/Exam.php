@@ -54,4 +54,9 @@ class Exam extends Model
     {
         return $this->hasMany(Question::class)->orderBy('id', 'DESC');
     }
+
+    public function examSessions()
+    {
+        return $this->hasMany(ExamSession::class);
+    }
 }

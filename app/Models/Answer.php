@@ -34,4 +34,9 @@ class Answer extends Model
     {
         return $this->belongsTo(Question::class);
     }
+
+    public function student()
+    {
+        return $this->belongsTo(Student::class);
+    }
 }

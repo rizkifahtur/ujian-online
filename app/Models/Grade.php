@@ -55,4 +55,10 @@ class Grade extends Model
     {
         return $this->belongsTo(Student::class);
     }
+
+    public function answers()
+    {
+        return $this->hasMany(Answer::class, 'exam_id', 'exam_id')
+            ->where('student_id', $this->student_id);
+    }
 }
