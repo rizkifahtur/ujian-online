@@ -53,6 +53,9 @@
                     <div class="card-body">
                         <h5><i class="fa fa-question-circle"></i> Evaluasi Siswa</h5>
                         <hr>
+                        <button class="btn btn-success mb-3" @click="exportToExcel">
+                            <i class="fa fa-file-excel me-2"></i> Export to Excel
+                        </button>
                         <div class="table-responsive">
                             <table class="table table-bordered table-centered table-nowrap mb-0 rounded">
                                 <thead class="thead-dark">
@@ -93,6 +96,7 @@
 <script>
 import { Head, Link } from '@inertiajs/vue3';
 import LayoutAdmin from '../../../Layouts/Admin.vue';
+import * as XLSX from 'xlsx';
 
 export default {
     layout: LayoutAdmin,
@@ -104,7 +108,25 @@ export default {
         examResult: Object,
         questionsWithAnswers: Array,
     },
+
+    methods: {
+    exportToExcel() {
+        const ws = XLSX.utils.json_to_sheet(this.questionsWithAnswers.map((question, index) => ({
+            No: index + 1,
+            Pertanyaan: question.text.replace(/(<([^>]+)>)/gi, ''), // Remove HTML tags for cleaner export
+            'Jawaban Siswa': question.student_answer.replace(/(<([^>]+)>)/gi, ''),
+            'Jawaban Benar': question.correct_answer.replace(/(<([^>]+)>)/gi, ''),
+            'Benar/Salah': question.is_correct === 'Y' ? 'Benar' : 'Salah'
+        })));
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, 'Evaluasi Siswa');
+        XLSX.writeFile(wb, 'evaluasi_siswa.xlsx');
+    }
+}
 };
+
+
+
 </script>
 
 <style></style>
