@@ -113,12 +113,7 @@ export default {
         exportToExcel() {
             const ws = XLSX.utils.json_to_sheet(this.questionsWithAnswers.map((question, index) => ({
                 No: index + 1,
-                Pertanyaan: question.text.replace(/(<([^>]+)>)/gi, '') + "\n" +
-                    "A. " + (question.options?.A || '').replace(/(<([^>]+)>)/gi, '') + "\n" +
-                    "B. " + (question.options?.B || '').replace(/(<([^>]+)>)/gi, '') + "\n" +
-                    "C. " + (question.options?.C || '').replace(/(<([^>]+)>)/gi, '') + "\n" +
-                    "D. " + (question.options?.D || '').replace(/(<([^>]+)>)/gi, '') + "\n" +
-                    "E. " + (question.options?.E || '').replace(/(<([^>]+)>)/gi, ''),
+                Pertanyaan: question.text.replace(/(<([^>]+)>)/gi, '') + "\n",
                 'Jawaban Siswa': question.student_answer.replace(/(<([^>]+)>)/gi, ''),
                 'Jawaban Benar': question.correct_answer.replace(/(<([^>]+)>)/gi, ''),
                 'Benar/Salah': question.is_correct === 'Y' ? 'Benar' : 'Salah'
