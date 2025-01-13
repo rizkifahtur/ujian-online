@@ -106,13 +106,12 @@ class ReportController extends Controller
                         ];
 
                         $questionText = $answer->question->question .
-                            '<ol type="A" style="list-style-type: upper-alpha;">' .
-                            '<li>' . $answer->question->option_1 . '</li>' .
-                            '<li>' . $answer->question->option_2 . '</li>' .
-                            '<li>' . $answer->question->option_3 . '</li>' .
-                            '<li>' . $answer->question->option_4 . '</li>' .
-                            '<li>' . $answer->question->option_5 . '</li>' .
-                            '</ol>';
+
+                            'A.' . $answer->question->option_1 . ' ' .
+                            'B.' . $answer->question->option_2 . ' ' .
+                            'C.' . $answer->question->option_3 . ' ' .
+                            'D.' . $answer->question->option_4 . ' ' .
+                            'E.' . $answer->question->option_5;
 
                         $studentAnswer = $options[$answer->answer];
                         $correctAnswer = $options[$answer->question->answer];
