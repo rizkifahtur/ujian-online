@@ -105,7 +105,14 @@ class ReportController extends Controller
                             '5' => 'E. ' . $answer->question->option_5,
                         ];
 
-                        $questionText = $answer->question->question;
+                        $questionText = $answer->question->question .
+                            '<ol type="A" style="list-style-type: upper-alpha;">' .
+                            '<li>' . $answer->question->option_1 . '</li>' .
+                            '<li>' . $answer->question->option_2 . '</li>' .
+                            '<li>' . $answer->question->option_3 . '</li>' .
+                            '<li>' . $answer->question->option_4 . '</li>' .
+                            '<li>' . $answer->question->option_5 . '</li>' .
+                            '</ol>';
 
                         $studentAnswer = $options[$answer->answer];
                         $correctAnswer = $options[$answer->question->answer];
@@ -135,11 +142,11 @@ class ReportController extends Controller
             ->get()
             ->map(function ($answer) {
                 $options = [
-                    '1' => 'A.' . $answer->question->option_1,
-                    '2' => 'B.' . $answer->question->option_2,
-                    '3' => 'C.' . $answer->question->option_3,
-                    '4' => 'D.' . $answer->question->option_4,
-                    '5' => 'E.' . $answer->question->option_5,
+                    '1' => 'A. ' . $answer->question->option_1,
+                    '2' => 'B. ' . $answer->question->option_2,
+                    '3' => 'C. ' . $answer->question->option_3,
+                    '4' => 'D. ' . $answer->question->option_4,
+                    '5' => 'E. ' . $answer->question->option_5,
                 ];
 
                 $questionText = $answer->question->question .
@@ -151,8 +158,8 @@ class ReportController extends Controller
                     '<li>' . $answer->question->option_5 . '</li>' .
                     '</ol>';
 
-                $studentAnswer =  $options[$answer->answer];
-                $correctAnswer =  $options[$answer->question->answer];
+                $studentAnswer = $options[$answer->answer];
+                $correctAnswer = $options[$answer->question->answer];
 
                 return [
                     'text' => $questionText,
