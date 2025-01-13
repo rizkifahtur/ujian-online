@@ -110,23 +110,26 @@ export default {
     },
 
     methods: {
-    exportToExcel() {
-        const ws = XLSX.utils.json_to_sheet(this.questionsWithAnswers.map((question, index) => ({
-            No: index + 1,
-            Pertanyaan: question.text.replace(/(<([^>]+)>)/gi, ''), // Remove HTML tags for cleaner export
-            'Jawaban Siswa': question.student_answer.replace(/(<([^>]+)>)/gi, ''),
-            'Jawaban Benar': question.correct_answer.replace(/(<([^>]+)>)/gi, ''),
-            'Benar/Salah': question.is_correct === 'Y' ? 'Benar' : 'Salah'
-        })));
-        const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, 'Evaluasi Siswa');
-        XLSX.writeFile(wb, 'evaluasi_siswa.xlsx');
+        exportToExcel() {
+            const ws = XLSX.utils.json_to_sheet(this.questionsWithAnswers.map((question, index) => ({
+                No: index + 1,
+                Pertanyaan: question.text.replace(/(<([^>]+)>)/gi, '') + "\n" +
+                    "A. " + (question.options?.A || '').replace(/(<([^>]+)>)/gi, '') + "\n" +
+                    "B. " + (question.options?.B || '').replace(/(<([^>]+)>)/gi, '') + "\n" +
+                    "C. " + (question.options?.C || '').replace(/(<([^>]+)>)/gi, '') + "\n" +
+                    "D. " + (question.options?.D || '').replace(/(<([^>]+)>)/gi, '') + "\n" +
+                    "E. " + (question.options?.E || '').replace(/(<([^>]+)>)/gi, ''),
+                'Jawaban Siswa': question.student_answer.replace(/(<([^>]+)>)/gi, ''),
+                'Jawaban Benar': question.correct_answer.replace(/(<([^>]+)>)/gi, ''),
+                'Benar/Salah': question.is_correct === 'Y' ? 'Benar' : 'Salah'
+            })));
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'Evaluasi Siswa');
+            const fileName = `evaluasi_siswa_${this.examResult.student.name.replace(/\s+/g, '_')}.xlsx`;
+            XLSX.writeFile(wb, fileName);
+        }
     }
-}
 };
-
-
-
 </script>
 
 <style></style>
