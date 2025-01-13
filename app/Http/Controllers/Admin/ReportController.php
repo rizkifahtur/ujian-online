@@ -90,7 +90,35 @@ class ReportController extends Controller
         $grades = Grade::with('student', 'exam.classroom', 'exam.lesson', 'exam_session')
             ->where('exam_id', $exam->id)
             ->where('exam_session_id', $exam_session->id)
-            ->get();
+            ->get()
+            ->map(function ($grade) {
+                $grade->questions_with_answers = Answer::with('question')
+                    ->where('student_id', $grade->student_id)
+                    ->where('exam_id', $grade->exam_id)
+                    ->get()
+                    ->map(function ($answer) {
+                        $options = [
+                            '1' => 'A. ' . $answer->question->option_1,
+                            '2' => 'B. ' . $answer->question->option_2,
+                            '3' => 'C. ' . $answer->question->option_3,
+                            '4' => 'D. ' . $answer->question->option_4,
+                            '5' => 'E. ' . $answer->question->option_5,
+                        ];
+
+                        $questionText = $answer->question->question;
+
+                        $studentAnswer = $options[$answer->answer];
+                        $correctAnswer = $options[$answer->question->answer];
+
+                        return [
+                            'text' => $questionText,
+                            'student_answer' => $studentAnswer,
+                            'correct_answer' => $correctAnswer,
+                            'is_correct' => $answer->is_correct,
+                        ];
+                    });
+                return $grade;
+            });
 
         return Excel::download(new GradesExport($grades), 'grade : ' . $exam->title . ' — ' . $exam->lesson->title . ' — ' . Carbon::now() . '.xlsx');
     }
