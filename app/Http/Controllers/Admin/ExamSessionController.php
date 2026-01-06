@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Models\Exam;
 use App\Models\Student;
+use App\Models\Classroom;
 use App\Models\ExamGroup;
 use App\Models\ExamSession;
 use Illuminate\Http\Request;
@@ -172,20 +173,23 @@ class ExamSessionController extends Controller
      */
     public function createEnrolle(ExamSession $exam_session)
     {
-        //get exams
-        $exam = $exam_session->exam;
+        //get exam dengan relasi
+        $exam = Exam::with('lesson', 'classroom')->findOrFail($exam_session->exam_id);
 
-        //get students already enrolled
-        $students_enrolled = ExamGroup::where('exam_id', $exam->id)->where('exam_session_id', $exam_session->id)->pluck('student_id')->all();
+        //get classroom dari exam
+        $classroom = $exam->classroom;
 
-        //get students
-        $students = Student::with('classroom')->where('classroom_id', $exam->classroom_id)->whereNotIn('id', $students_enrolled)->get();
+        //cek apakah kelas sudah dienroll
+        $is_enrolled = ExamGroup::where('exam_id', $exam->id)
+            ->where('exam_session_id', $exam_session->id)
+            ->exists();
 
         //render with inertia
         return inertia('Admin/ExamGroups/Create', [
             'exam'          => $exam,
             'exam_session'  => $exam_session,
-            'students'      => $students,
+            'classroom'     => $classroom,
+            'is_enrolled'   => $is_enrolled,
         ]);
     }
 
@@ -197,23 +201,33 @@ class ExamSessionController extends Controller
      */
     public function storeEnrolle(Request $request, ExamSession $exam_session)
     {
-        //validate request
-        $request->validate([
-            'student_id'    => 'required',
-        ]);
+        //get exam
+        $exam = Exam::findOrFail($request->exam_id);
 
-        //create exam_group
-        foreach ($request->student_id as $student_id) {
+        //get all students in the classroom
+        $students = Student::where('classroom_id', $exam->classroom_id)->get();
 
-            //select student
-            $student = Student::findOrFail($student_id);
+        //check if no students in classroom
+        if ($students->count() == 0) {
+            return back()->withErrors(['message' => 'Tidak ada siswa di kelas ini.']);
+        }
 
-            //create exam_group
-            ExamGroup::create([
-                'exam_id'         => $request->exam_id,
-                'exam_session_id' => $exam_session->id,
-                'student_id'      => $student->id,
-            ]);
+        //enroll all students from the classroom
+        foreach ($students as $student) {
+            //check if student already enrolled
+            $exists = ExamGroup::where('exam_id', $exam->id)
+                ->where('exam_session_id', $exam_session->id)
+                ->where('student_id', $student->id)
+                ->exists();
+
+            //if not exists, create new enrollment
+            if (!$exists) {
+                ExamGroup::create([
+                    'exam_id'         => $exam->id,
+                    'exam_session_id' => $exam_session->id,
+                    'student_id'      => $student->id,
+                ]);
+            }
         }
 
         //redirect

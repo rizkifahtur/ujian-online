@@ -79,11 +79,13 @@ class ExamController extends Controller
 
         foreach ($questions as $question) {
 
-            //buat array jawaban / answer
-            $options = [1, 2];
-            if (!empty($question->option_3)) $options[] = 3;
-            if (!empty($question->option_4)) $options[] = 4;
-            if (!empty($question->option_5)) $options[] = 5;
+            //buat array jawaban / answer berdasarkan option yang ada (text atau image)
+            $options = [];
+            if (!empty($question->option_1) || !empty($question->option_1_image)) $options[] = 1;
+            if (!empty($question->option_2) || !empty($question->option_2_image)) $options[] = 2;
+            if (!empty($question->option_3) || !empty($question->option_3_image)) $options[] = 3;
+            if (!empty($question->option_4) || !empty($question->option_4_image)) $options[] = 4;
+            if (!empty($question->option_5) || !empty($question->option_5_image)) $options[] = 5;
 
             //acak jawaban / answer
             if ($exam_group->exam->random_answer == 'Y') {

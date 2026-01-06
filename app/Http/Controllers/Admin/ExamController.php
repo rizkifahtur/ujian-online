@@ -215,17 +215,36 @@ class ExamController extends Controller
     {
         //validate request
         $request->validate([
-            'question'          => 'required',
-            'option_1'          => 'required',
-            'option_2'          => 'required',
-            'option_3'          => 'required',
-            'option_4'          => 'required',
-            'option_5'          => 'required',
-            'answer'            => 'required',
+            'question'          => 'nullable',
+            'question_image'    => 'nullable|image|mimes:jpeg,jpg,png|max:2048',
+            'option_1'          => 'nullable',
+            'option_1_image'    => 'nullable|image|mimes:jpeg,jpg,png|max:2048',
+            'option_2'          => 'nullable',
+            'option_2_image'    => 'nullable|image|mimes:jpeg,jpg,png|max:2048',
+            'option_3'          => 'nullable',
+            'option_3_image'    => 'nullable|image|mimes:jpeg,jpg,png|max:2048',
+            'option_4'          => 'nullable',
+            'option_4_image'    => 'nullable|image|mimes:jpeg,jpg,png|max:2048',
+            'option_5'          => 'nullable',
+            'option_5_image'    => 'nullable|image|mimes:jpeg,jpg,png|max:2048',
+            'answer'            => 'required|integer|min:1',
         ]);
 
-        //create question
-        Question::create([
+        //validate at least question text or image exists
+        if (empty($request->question) && !$request->hasFile('question_image')) {
+            return back()->withErrors(['question' => 'Soal harus diisi dengan teks atau gambar.']);
+        }
+
+        //validate at least option 1 and 2 have text or image
+        if (empty($request->option_1) && !$request->hasFile('option_1_image')) {
+            return back()->withErrors(['option_1' => 'Pilihan A harus diisi dengan teks atau gambar.']);
+        }
+        if (empty($request->option_2) && !$request->hasFile('option_2_image')) {
+            return back()->withErrors(['option_2' => 'Pilihan B harus diisi dengan teks atau gambar.']);
+        }
+
+        //prepare data
+        $data = [
             'exam_id'           => $exam->id,
             'question'          => $request->question,
             'option_1'          => $request->option_1,
@@ -234,7 +253,35 @@ class ExamController extends Controller
             'option_4'          => $request->option_4,
             'option_5'          => $request->option_5,
             'answer'            => $request->answer,
-        ]);
+        ];
+
+        //handle image uploads
+        if ($request->hasFile('question_image')) {
+            $data['question_image'] = $request->file('question_image')->store('questions', 'public');
+        }
+        
+        if ($request->hasFile('option_1_image')) {
+            $data['option_1_image'] = $request->file('option_1_image')->store('questions', 'public');
+        }
+        
+        if ($request->hasFile('option_2_image')) {
+            $data['option_2_image'] = $request->file('option_2_image')->store('questions', 'public');
+        }
+        
+        if ($request->hasFile('option_3_image')) {
+            $data['option_3_image'] = $request->file('option_3_image')->store('questions', 'public');
+        }
+        
+        if ($request->hasFile('option_4_image')) {
+            $data['option_4_image'] = $request->file('option_4_image')->store('questions', 'public');
+        }
+        
+        if ($request->hasFile('option_5_image')) {
+            $data['option_5_image'] = $request->file('option_5_image')->store('questions', 'public');
+        }
+
+        //create question
+        Question::create($data);
 
         //redirect
         return redirect()->route('admin.exams.show', $exam->id);
@@ -268,17 +315,36 @@ class ExamController extends Controller
     {
         //validate request
         $request->validate([
-            'question'          => 'required',
-            'option_1'          => 'required',
-            'option_2'          => 'required',
-            'option_3'          => 'required',
-            'option_4'          => 'required',
-            'option_5'          => 'required',
-            'answer'            => 'required',
+            'question'          => 'nullable',
+            'question_image'    => 'nullable|image|mimes:jpeg,jpg,png|max:2048',
+            'option_1'          => 'nullable',
+            'option_1_image'    => 'nullable|image|mimes:jpeg,jpg,png|max:2048',
+            'option_2'          => 'nullable',
+            'option_2_image'    => 'nullable|image|mimes:jpeg,jpg,png|max:2048',
+            'option_3'          => 'nullable',
+            'option_3_image'    => 'nullable|image|mimes:jpeg,jpg,png|max:2048',
+            'option_4'          => 'nullable',
+            'option_4_image'    => 'nullable|image|mimes:jpeg,jpg,png|max:2048',
+            'option_5'          => 'nullable',
+            'option_5_image'    => 'nullable|image|mimes:jpeg,jpg,png|max:2048',
+            'answer'            => 'required|integer|min:1',
         ]);
 
-        //update question
-        $question->update([
+        //validate at least question text or image exists
+        if (empty($request->question) && !$request->hasFile('question_image') && empty($question->question_image)) {
+            return back()->withErrors(['question' => 'Soal harus diisi dengan teks atau gambar.']);
+        }
+
+        //validate at least option 1 and 2 have text or image
+        if (empty($request->option_1) && !$request->hasFile('option_1_image') && empty($question->option_1_image)) {
+            return back()->withErrors(['option_1' => 'Pilihan A harus diisi dengan teks atau gambar.']);
+        }
+        if (empty($request->option_2) && !$request->hasFile('option_2_image') && empty($question->option_2_image)) {
+            return back()->withErrors(['option_2' => 'Pilihan B harus diisi dengan teks atau gambar.']);
+        }
+
+        //prepare data
+        $data = [
             'question'          => $request->question,
             'option_1'          => $request->option_1,
             'option_2'          => $request->option_2,
@@ -286,7 +352,54 @@ class ExamController extends Controller
             'option_4'          => $request->option_4,
             'option_5'          => $request->option_5,
             'answer'            => $request->answer,
-        ]);
+        ];
+
+        //handle image uploads and delete old images if new ones are uploaded
+        if ($request->hasFile('question_image')) {
+            //delete old image
+            if ($question->question_image) {
+                \Storage::disk('public')->delete($question->question_image);
+            }
+            $data['question_image'] = $request->file('question_image')->store('questions', 'public');
+        }
+        
+        if ($request->hasFile('option_1_image')) {
+            if ($question->option_1_image) {
+                \Storage::disk('public')->delete($question->option_1_image);
+            }
+            $data['option_1_image'] = $request->file('option_1_image')->store('questions', 'public');
+        }
+        
+        if ($request->hasFile('option_2_image')) {
+            if ($question->option_2_image) {
+                \Storage::disk('public')->delete($question->option_2_image);
+            }
+            $data['option_2_image'] = $request->file('option_2_image')->store('questions', 'public');
+        }
+        
+        if ($request->hasFile('option_3_image')) {
+            if ($question->option_3_image) {
+                \Storage::disk('public')->delete($question->option_3_image);
+            }
+            $data['option_3_image'] = $request->file('option_3_image')->store('questions', 'public');
+        }
+        
+        if ($request->hasFile('option_4_image')) {
+            if ($question->option_4_image) {
+                \Storage::disk('public')->delete($question->option_4_image);
+            }
+            $data['option_4_image'] = $request->file('option_4_image')->store('questions', 'public');
+        }
+        
+        if ($request->hasFile('option_5_image')) {
+            if ($question->option_5_image) {
+                \Storage::disk('public')->delete($question->option_5_image);
+            }
+            $data['option_5_image'] = $request->file('option_5_image')->store('questions', 'public');
+        }
+
+        //update question
+        $question->update($data);
 
         //redirect
         return redirect()->route('admin.exams.show', $exam->id);

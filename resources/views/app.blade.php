@@ -19,9 +19,9 @@
 
     @inertia
 
-    <script src="{{ asset('assets/js/bootstrap.bundle.min.js') }}"></script>
-    <script src="{{ asset('assets/js/smooth-scroll.polyfills.min.js') }}"></script>
-    <script src="{{ asset('assets/js/simplebar.min.js') }}"></script>
-    <script src="{{ asset('assets/js/volt.js') }}"></script>
+    <script src="{{ asset('assets/js/bootstrap.bundle.min.js') }}" defer></script>
+    <script src="{{ asset('assets/js/smooth-scroll.polyfills.min.js') }}" defer></script>
+    <script src="{{ asset('assets/js/simplebar.min.js') }}" defer></script>
+    <script src="{{ asset('assets/js/volt.js') }}" defer></script>
 </body>
 </html>
