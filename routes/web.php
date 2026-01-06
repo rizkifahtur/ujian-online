@@ -6,6 +6,9 @@ use App\Http\Controllers\ExamResultController;
 //prefix "admin"
 Route::prefix('admin')->group(function () {
 
+    //redirect /admin to /admin/dashboard
+    Route::redirect('/', '/admin/dashboard');
+
     //middleware "auth"
     Route::group(['middleware' => ['auth']], function () {
 
