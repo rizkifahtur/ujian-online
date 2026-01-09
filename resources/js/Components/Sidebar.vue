@@ -317,19 +317,35 @@ export default {
 
   setup() {
     onMounted(() => {
-      // Auto close sidebar on mobile when link is clicked
-      const sidebar = document.getElementById('sidebarMenu');
-      const navLinks = sidebar?.querySelectorAll('.nav-link');
+      // Wait for Bootstrap to be loaded
+      setTimeout(() => {
+        // Auto close sidebar on mobile when link is clicked
+        const sidebar = document.getElementById('sidebarMenu');
+        const navLinks = sidebar?.querySelectorAll('.nav-link');
 
-      navLinks?.forEach((link) => {
-        link.addEventListener('click', () => {
-          // Check if on mobile (sidebar is collapsed)
-          if (window.innerWidth < 992 && sidebar.classList.contains('show')) {
-            // Close sidebar by removing 'show' class
-            sidebar.classList.remove('show');
-          }
+        navLinks?.forEach((link) => {
+          link.addEventListener('click', () => {
+            // Check if on mobile (sidebar is collapsed)
+            if (window.innerWidth < 992) {
+              // Use Bootstrap 5 Collapse API to properly close sidebar
+              const bsCollapse = window.bootstrap?.Collapse?.getInstance(sidebar);
+              if (bsCollapse) {
+                bsCollapse.hide();
+              } else if (sidebar.classList.contains('show')) {
+                // Fallback: manually toggle classes and remove backdrop
+                sidebar.classList.remove('show');
+                document.body.classList.remove('modal-open');
+                document.body.style.removeProperty('overflow');
+                document.body.style.removeProperty('padding-right');
+
+                // Remove any backdrop
+                const backdrops = document.querySelectorAll('.offcanvas-backdrop, .modal-backdrop');
+                backdrops.forEach((backdrop) => backdrop.remove());
+              }
+            }
+          });
         });
-      });
+      }, 100);
     });
   },
 };
