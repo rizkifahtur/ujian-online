@@ -271,7 +271,9 @@ export default {
     });
 
     //define state untuk fullscreen prompt
-    const showFullscreenPrompt = ref(true);
+    // Di mobile, skip fullscreen prompt karena fullscreen API sering tidak didukung
+    const isMobile = ref(window.innerWidth <= 768 || /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent));
+    const showFullscreenPrompt = ref(!isMobile.value);
 
     //define state untuk flag apakah sedang submit
     const isSubmitting = ref(false);
@@ -418,6 +420,7 @@ export default {
       if (!enableLockdown) return;
       if (showFullscreenPrompt.value) return;
       if (isSubmitting.value) return;
+      if (isLocked.value) return;
 
       if (document.visibilityState === 'hidden') {
         showLockdownAlert();
@@ -428,6 +431,9 @@ export default {
       if (!enableLockdown) return;
       if (showFullscreenPrompt.value) return;
       if (isSubmitting.value) return;
+      if (isLocked.value) return;
+      // Di mobile, gunakan visibilitychange saja untuk menghindari double trigger
+      if (isMobile.value) return;
 
       showLockdownAlert();
     };
@@ -679,6 +685,7 @@ export default {
       isFullscreen,
       isSubmitting,
       tabSwitchCount,
+      isMobile,
     };
   },
 };
@@ -704,6 +711,7 @@ export default {
   border-radius: 10px;
   text-align: center;
   max-width: 500px;
+  margin: 20px;
 }
 
 .fullscreen-modal h3 {
@@ -721,5 +729,124 @@ export default {
   -webkit-user-select: none;
   -moz-user-select: none;
   -ms-user-select: none;
+  padding: 10px;
+}
+
+/* Mobile Responsive Styles */
+@media (max-width: 768px) {
+  .wrapper {
+    padding: 5px;
+  }
+
+  .wrapper .row {
+    margin: 0;
+  }
+
+  .wrapper .col-md-7,
+  .wrapper .col-md-5 {
+    padding: 5px;
+  }
+
+  .wrapper .card {
+    margin-bottom: 15px;
+  }
+
+  .wrapper .card-header {
+    padding: 10px;
+  }
+
+  .wrapper .card-header h5 {
+    font-size: 14px;
+  }
+
+  .wrapper .card-header .badge {
+    font-size: 11px;
+    padding: 5px 8px !important;
+  }
+
+  .wrapper .card-body {
+    padding: 10px;
+  }
+
+  .wrapper .card-body p {
+    font-size: 14px;
+  }
+
+  .wrapper .card-body table {
+    width: 100%;
+  }
+
+  .wrapper .card-body table td {
+    padding: 5px !important;
+    vertical-align: top;
+  }
+
+  .wrapper .card-body table td:first-child {
+    width: 40px !important;
+  }
+
+  .wrapper .card-body table button {
+    padding: 5px 10px;
+    font-size: 12px;
+  }
+
+  .wrapper .card-footer {
+    padding: 10px;
+  }
+
+  .wrapper .card-footer .btn {
+    font-size: 12px;
+    padding: 8px 12px;
+  }
+
+  /* Question navigation */
+  .wrapper .col-md-5 .card-body {
+    height: auto !important;
+    max-height: 200px;
+  }
+
+  .wrapper .col-md-5 .card-body > div > div {
+    width: 16.66% !important;
+  }
+
+  .wrapper .col-md-5 .card-body button {
+    font-size: 11px;
+    padding: 5px;
+  }
+
+  .fullscreen-modal {
+    padding: 20px;
+    margin: 15px;
+  }
+
+  .fullscreen-modal h3 {
+    font-size: 18px;
+  }
+
+  .fullscreen-modal p {
+    font-size: 14px;
+    margin-bottom: 20px;
+  }
+
+  .fullscreen-modal .btn {
+    font-size: 14px;
+    padding: 10px 20px;
+  }
+}
+
+/* Small mobile */
+@media (max-width: 480px) {
+  .wrapper .col-md-5 .card-body > div > div {
+    width: 20% !important;
+  }
+
+  .wrapper .card-header .d-flex {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .wrapper .card-header .badge {
+    align-self: flex-start;
+  }
 }
 </style>
