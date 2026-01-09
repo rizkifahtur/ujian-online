@@ -29,6 +29,17 @@ class Student extends Authenticatable
      */
     protected $casts = [
         'nisn' => 'string',
+        'password' => 'hashed',
+    ];
+
+    /**
+     * hidden
+     *
+     * @var array
+     */
+    protected $hidden = [
+        'password',
+        'remember_token',
     ];
 
     /**
