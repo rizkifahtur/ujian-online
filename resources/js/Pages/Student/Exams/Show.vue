@@ -312,18 +312,124 @@ export default {
       }
     };
 
-    // Listen tab switch
-    const handleVisibilityChange = () => {
-      if (document.visibilityState !== 'visible') {
+    const tabSwitchCount = ref(0);
+    const isLocked = ref(false);
+    const lockdownSeconds = props.exam_group?.exam?.lockdown_duration || 30;
+    const maxViolations = props.exam_group?.exam?.max_violations || 3;
+    const enableLockdown = props.exam_group?.exam?.enable_lockdown !== 'N';
+
+    const logViolationToServer = (violationType, count) => {
+      const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+
+      axios
+        .post(
+          '/student/exam-violation',
+          {
+            exam_id: props.exam_group.exam.id,
+            exam_session_id: props.exam_group.exam_session.id,
+            exam_group_id: props.exam_group.id,
+            violation_type: violationType,
+            violation_count: count,
+            description: `Pelanggaran ${violationType} ke-${count}`,
+          },
+          {
+            headers: {
+              'X-CSRF-TOKEN': csrfToken,
+            },
+          }
+        )
+        .catch((error) => {
+          console.warn('Failed to log violation:', error);
+        });
+    };
+
+    const showLockdownAlert = () => {
+      if (isLocked.value) return;
+
+      tabSwitchCount.value++;
+      isLocked.value = true;
+
+      logViolationToServer('tab_switch', tabSwitchCount.value);
+
+      if (tabSwitchCount.value >= maxViolations) {
+        let countdown = lockdownSeconds;
         Swal.fire({
-          title: 'Jangan Berpindah Tab!',
-          text: 'Anda harus tetap berada di halaman ujian sampai selesai.',
+          title: 'Ujian Diakhiri!',
+          html: `Anda telah melanggar aturan sebanyak <strong>${maxViolations} kali</strong>.<br><br>Ujian akan diakhiri dalam <strong><span id="countdown">${countdown}</span></strong> detik.`,
           icon: 'error',
-          confirmButtonText: 'Kembali',
           allowOutsideClick: false,
           allowEscapeKey: false,
+          showConfirmButton: false,
+          didOpen: () => {
+            const countdownEl = document.getElementById('countdown');
+            const timer = setInterval(() => {
+              countdown--;
+              if (countdownEl) {
+                countdownEl.textContent = countdown;
+              }
+              if (countdown <= 0) {
+                clearInterval(timer);
+                Swal.close();
+                endExamForced();
+              }
+            }, 1000);
+          },
+        });
+      } else {
+        let countdown = lockdownSeconds;
+        Swal.fire({
+          title: 'Peringatan Kecurangan!',
+          html: `
+            <div style="text-align: center;">
+              <p>Anda terdeteksi meninggalkan halaman ujian.</p>
+              <div style="font-size: 48px; font-weight: bold; color: #dc3545; margin: 20px 0;">
+                <span id="countdown">${countdown}</span>
+              </div>
+              <p>Ujian dikunci selama ${lockdownSeconds} detik</p>
+              <hr>
+              <p><strong>Pelanggaran ke-${tabSwitchCount.value} dari ${maxViolations}</strong></p>
+              <p style="color: #dc3545;">Jika mencapai ${maxViolations} kali pelanggaran, ujian akan otomatis diakhiri!</p>
+            </div>
+          `,
+          icon: 'error',
+          allowOutsideClick: false,
+          allowEscapeKey: false,
+          showConfirmButton: false,
+          didOpen: () => {
+            const countdownEl = document.getElementById('countdown');
+            const timer = setInterval(() => {
+              countdown--;
+              if (countdownEl) {
+                countdownEl.textContent = countdown;
+              }
+              if (countdown <= 0) {
+                clearInterval(timer);
+                isLocked.value = false;
+                Swal.close();
+                forceFullscreen();
+              }
+            }, 1000);
+          },
         });
       }
+    };
+
+    const handleVisibilityChange = () => {
+      if (!enableLockdown) return;
+      if (showFullscreenPrompt.value) return;
+      if (isSubmitting.value) return;
+
+      if (document.visibilityState === 'hidden') {
+        showLockdownAlert();
+      }
+    };
+
+    const handleWindowBlur = () => {
+      if (!enableLockdown) return;
+      if (showFullscreenPrompt.value) return;
+      if (isSubmitting.value) return;
+
+      showLockdownAlert();
     };
 
     // Blokir navigasi selama ujian
@@ -374,7 +480,10 @@ export default {
       document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
       document.addEventListener('msfullscreenchange', handleFullscreenChange);
       document.addEventListener('visibilitychange', handleVisibilityChange);
+      window.addEventListener('blur', handleWindowBlur);
       window.addEventListener('beforeunload', blockNavigation);
+      document.addEventListener('keydown', handleKeydown);
+      document.addEventListener('contextmenu', handleContextMenu);
     });
 
     // Bersihkan event listener saat selesai ujian
@@ -383,7 +492,10 @@ export default {
       document.removeEventListener('webkitfullscreenchange', handleFullscreenChange);
       document.removeEventListener('msfullscreenchange', handleFullscreenChange);
       document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('blur', handleWindowBlur);
       window.removeEventListener('beforeunload', blockNavigation);
+      document.removeEventListener('keydown', handleKeydown);
+      document.removeEventListener('contextmenu', handleContextMenu);
       if (document.exitFullscreen) {
         document.exitFullscreen();
       } else if (document.webkitExitFullscreen) {
@@ -499,6 +611,54 @@ export default {
       });
     };
 
+    const endExamForced = () => {
+      cleanup();
+      router.post('/student/exam-end', {
+        exam_group_id: props.exam_group.id,
+        exam_id: props.exam_group.exam.id,
+        exam_session_id: props.exam_group.exam_session.id,
+      });
+    };
+
+    const handleKeydown = (event) => {
+      const blockedKeys = ['F1', 'F2', 'F3', 'F4', 'F5', 'F6', 'F7', 'F8', 'F9', 'F10', 'F12'];
+
+      if (blockedKeys.includes(event.key)) {
+        event.preventDefault();
+        return;
+      }
+
+      if (event.altKey && event.key === 'Tab') {
+        event.preventDefault();
+        return;
+      }
+
+      if (event.altKey && event.key === 'F4') {
+        event.preventDefault();
+        return;
+      }
+
+      if ((event.ctrlKey || event.metaKey) && ['w', 'W', 't', 'T', 'n', 'N'].includes(event.key)) {
+        event.preventDefault();
+        return;
+      }
+
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        Swal.fire({
+          title: 'Tidak Dapat Keluar!',
+          text: 'Anda harus menyelesaikan ujian terlebih dahulu.',
+          icon: 'warning',
+          confirmButtonText: 'OK',
+        });
+        return;
+      }
+    };
+
+    const handleContextMenu = (event) => {
+      event.preventDefault();
+    };
+
     //return
     return {
       options,
@@ -518,6 +678,7 @@ export default {
       question_active,
       isFullscreen,
       isSubmitting,
+      tabSwitchCount,
     };
   },
 };
@@ -553,5 +714,12 @@ export default {
 .fullscreen-modal p {
   margin-bottom: 30px;
   color: #666;
+}
+
+.wrapper {
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
 }
 </style>

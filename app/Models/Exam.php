@@ -24,7 +24,11 @@ class Exam extends Model
         'random_question',
         'random_answer',
         'show_answer',
+        'lockdown_duration',
+        'max_violations',
+        'enable_lockdown',
     ];
+
     /**
      * lesson
      *
@@ -58,5 +62,10 @@ class Exam extends Model
     public function examSessions()
     {
         return $this->hasMany(ExamSession::class);
+    }
+
+    public function violations()
+    {
+        return $this->hasMany(ExamViolation::class);
     }
 }

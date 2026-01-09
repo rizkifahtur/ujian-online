@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Student;
 use App\Http\Controllers\Controller;
 use App\Models\Answer;
 use App\Models\ExamGroup;
+use App\Models\ExamViolation;
 use App\Models\Grade;
 use App\Models\Question;
 use Carbon\Carbon;
@@ -338,6 +339,68 @@ class ExamController extends Controller
         return inertia('Student/Exams/Result', [
             'exam_group' => $exam_group,
             'grade' => $grade,
+        ]);
+    }
+
+    public function logViolation(Request $request)
+    {
+        $request->validate([
+            'exam_id' => 'required|exists:exams,id',
+            'exam_session_id' => 'required|exists:exam_sessions,id',
+            'exam_group_id' => 'required|exists:exam_groups,id',
+            'violation_type' => 'required|string',
+            'violation_count' => 'required|integer',
+            'description' => 'nullable|string',
+        ]);
+
+        $studentId = auth()->guard('student')->user()->id;
+
+        $violation = ExamViolation::updateOrCreate(
+            [
+                'exam_id' => $request->exam_id,
+                'exam_session_id' => $request->exam_session_id,
+                'student_id' => $studentId,
+                'exam_group_id' => $request->exam_group_id,
+            ],
+            [
+                'violation_type' => $request->violation_type,
+                'violation_count' => $request->violation_count,
+                'description' => $request->description,
+                'violated_at' => now(),
+                'status' => $request->violation_count >= 3 ? 'ended' : 'active',
+            ]
+        );
+
+        return response()->json([
+            'success' => true,
+            'violation' => $violation,
+        ]);
+    }
+
+    public function checkViolationStatus(Request $request)
+    {
+        $studentId = auth()->guard('student')->user()->id;
+
+        $violation = ExamViolation::where('exam_id', $request->exam_id)
+            ->where('exam_session_id', $request->exam_session_id)
+            ->where('student_id', $studentId)
+            ->first();
+
+        if ($violation && $violation->status === 'forgiven') {
+            $violation->update([
+                'status' => 'active',
+                'violation_count' => 0,
+            ]);
+
+            return response()->json([
+                'can_continue' => true,
+                'message' => 'Admin telah mengizinkan Anda melanjutkan ujian.',
+            ]);
+        }
+
+        return response()->json([
+            'can_continue' => false,
+            'violation' => $violation,
         ]);
     }
 }
