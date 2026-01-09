@@ -18,22 +18,24 @@
           </div>
           <div class="card-body">
             <table class="table table-borderless">
-              <tr>
-                <td width="40%"><strong>Nama</strong></td>
-                <td>{{ violation.student.name }}</td>
-              </tr>
-              <tr>
-                <td><strong>NISN</strong></td>
-                <td>{{ violation.student.nisn }}</td>
-              </tr>
-              <tr>
-                <td><strong>Kelas</strong></td>
-                <td>{{ violation.student.classroom?.title }}</td>
-              </tr>
-              <tr>
-                <td><strong>Jenis Kelamin</strong></td>
-                <td>{{ violation.student.gender === 'L' ? 'Laki-laki' : 'Perempuan' }}</td>
-              </tr>
+              <tbody>
+                <tr>
+                  <td width="40%"><strong>Nama</strong></td>
+                  <td>{{ violation.student.name }}</td>
+                </tr>
+                <tr>
+                  <td><strong>NISN</strong></td>
+                  <td>{{ violation.student.nisn }}</td>
+                </tr>
+                <tr>
+                  <td><strong>Kelas</strong></td>
+                  <td>{{ violation.student.classroom?.title }}</td>
+                </tr>
+                <tr>
+                  <td><strong>Jenis Kelamin</strong></td>
+                  <td>{{ violation.student.gender === 'L' ? 'Laki-laki' : 'Perempuan' }}</td>
+                </tr>
+              </tbody>
             </table>
           </div>
         </div>
@@ -44,22 +46,24 @@
           </div>
           <div class="card-body">
             <table class="table table-borderless">
-              <tr>
-                <td width="40%"><strong>Ujian</strong></td>
-                <td>{{ violation.exam.title }}</td>
-              </tr>
-              <tr>
-                <td><strong>Mata Pelajaran</strong></td>
-                <td>{{ violation.exam.lesson?.title }}</td>
-              </tr>
-              <tr>
-                <td><strong>Sesi</strong></td>
-                <td>{{ violation.exam_session.title }}</td>
-              </tr>
-              <tr>
-                <td><strong>Durasi Ujian</strong></td>
-                <td>{{ violation.exam.duration }} menit</td>
-              </tr>
+              <tbody>
+                <tr>
+                  <td width="40%"><strong>Ujian</strong></td>
+                  <td class="text-wrap">{{ violation.exam.title }}</td>
+                </tr>
+                <tr>
+                  <td><strong>Mata Pelajaran</strong></td>
+                  <td class="text-wrap">{{ violation.exam.lesson?.title }}</td>
+                </tr>
+                <tr>
+                  <td><strong>Sesi</strong></td>
+                  <td class="text-wrap">{{ violation.exam_session.title }}</td>
+                </tr>
+                <tr>
+                  <td><strong>Durasi Ujian</strong></td>
+                  <td>{{ violation.exam.duration }} menit</td>
+                </tr>
+              </tbody>
             </table>
           </div>
         </div>
@@ -72,36 +76,38 @@
           </div>
           <div class="card-body">
             <table class="table table-borderless">
-              <tr>
-                <td width="40%"><strong>Tipe Pelanggaran</strong></td>
-                <td>
-                  <span class="badge bg-danger">{{ getViolationTypeLabel(violation.violation_type) }}</span>
-                </td>
-              </tr>
-              <tr>
-                <td><strong>Jumlah Pelanggaran</strong></td>
-                <td>
-                  <span :class="getBadgeClass(violation.violation_count)">
-                    {{ violation.violation_count }}x pelanggaran
-                  </span>
-                </td>
-              </tr>
-              <tr>
-                <td><strong>Waktu Terakhir</strong></td>
-                <td>{{ formatDate(violation.violated_at) }}</td>
-              </tr>
-              <tr>
-                <td><strong>Status</strong></td>
-                <td>
-                  <span :class="getStatusClass(violation.status)">
-                    {{ getStatusLabel(violation.status) }}
-                  </span>
-                </td>
-              </tr>
-              <tr v-if="violation.description">
-                <td><strong>Keterangan</strong></td>
-                <td>{{ violation.description }}</td>
-              </tr>
+              <tbody>
+                <tr>
+                  <td width="40%"><strong>Tipe Pelanggaran</strong></td>
+                  <td>
+                    <span class="badge bg-danger">{{ getViolationTypeLabel(violation.violation_type) }}</span>
+                  </td>
+                </tr>
+                <tr>
+                  <td><strong>Jumlah Pelanggaran</strong></td>
+                  <td>
+                    <span :class="getBadgeClass(violation.violation_count)">
+                      {{ violation.violation_count }}x pelanggaran
+                    </span>
+                  </td>
+                </tr>
+                <tr>
+                  <td><strong>Waktu Terakhir</strong></td>
+                  <td>{{ formatDate(violation.violated_at) }}</td>
+                </tr>
+                <tr>
+                  <td><strong>Status</strong></td>
+                  <td>
+                    <span :class="getStatusClass(violation.status)">
+                      {{ getStatusLabel(violation.status) }}
+                    </span>
+                  </td>
+                </tr>
+                <tr v-if="violation.description">
+                  <td><strong>Keterangan</strong></td>
+                  <td class="text-wrap">{{ violation.description }}</td>
+                </tr>
+              </tbody>
             </table>
 
             <div v-if="violation.status === 'forgiven'" class="alert alert-success mt-3">
@@ -120,29 +126,55 @@
           </div>
           <div class="card-body">
             <table class="table table-borderless">
-              <tr>
-                <td width="40%"><strong>Waktu Mulai</strong></td>
-                <td>{{ grade.start_time ? formatDate(grade.start_time) : '-' }}</td>
-              </tr>
-              <tr>
-                <td><strong>Waktu Selesai</strong></td>
-                <td>{{ grade.end_time ? formatDate(grade.end_time) : 'Belum selesai' }}</td>
-              </tr>
-              <tr>
-                <td><strong>Durasi Tersisa</strong></td>
-                <td>{{ formatDuration(grade.duration) }}</td>
-              </tr>
-              <tr>
-                <td><strong>Jawaban Benar</strong></td>
-                <td>{{ grade.total_correct }}</td>
-              </tr>
-              <tr>
-                <td><strong>Nilai</strong></td>
-                <td>
-                  <span class="badge bg-primary fs-5">{{ grade.grade }}</span>
-                </td>
-              </tr>
+              <tbody>
+                <tr>
+                  <td width="40%"><strong>Waktu Mulai</strong></td>
+                  <td>{{ grade.start_time ? formatDate(grade.start_time) : '-' }}</td>
+                </tr>
+                <tr>
+                  <td><strong>Waktu Selesai</strong></td>
+                  <td>{{ grade.end_time ? formatDate(grade.end_time) : 'Belum selesai' }}</td>
+                </tr>
+                <tr>
+                  <td><strong>Durasi Tersisa</strong></td>
+                  <td>{{ formatDuration(grade.duration) }}</td>
+                </tr>
+                <tr>
+                  <td><strong>Jawaban Benar</strong></td>
+                  <td>{{ grade.total_correct }}</td>
+                </tr>
+                <tr>
+                  <td><strong>Nilai</strong></td>
+                  <td>
+                    <span class="badge bg-primary fs-5">{{ grade.grade }}</span>
+                  </td>
+                </tr>
+              </tbody>
             </table>
+          </div>
+        </div>
+
+        <div class="card border-0 shadow mb-4" v-if="violation.status === 'active'">
+          <div class="card-body">
+            <h5><i class="fa fa-redo"></i> Reset Pelanggaran</h5>
+            <hr />
+            <p class="text-muted">
+              Siswa masih dalam ujian. Anda dapat mereset hitungan pelanggaran agar siswa bisa melanjutkan tanpa
+              khawatir.
+            </p>
+            <div class="mb-3">
+              <label class="form-label">Alasan Reset:</label>
+              <textarea
+                v-model="forgiveForm.reason"
+                class="form-control"
+                rows="3"
+                placeholder="Contoh: Siswa mengalami masalah teknis..."
+              ></textarea>
+              <div v-if="errors.reason" class="text-danger mt-1">{{ errors.reason }}</div>
+            </div>
+            <button type="button" class="btn btn-warning w-100" @click="forgiveViolation">
+              <i class="fa fa-redo"></i> Reset Pelanggaran
+            </button>
           </div>
         </div>
 
@@ -163,7 +195,7 @@
               ></textarea>
               <div v-if="errors.reason" class="text-danger mt-1">{{ errors.reason }}</div>
             </div>
-            <button @click="forgiveViolation" class="btn btn-success w-100">
+            <button type="button" class="btn btn-success w-100" @click="forgiveViolation">
               <i class="fa fa-check"></i> Izinkan Lanjut Ujian
             </button>
           </div>
@@ -277,3 +309,25 @@ export default {
   },
 };
 </script>
+
+<style scoped>
+.table-borderless {
+  table-layout: fixed;
+  width: 100%;
+}
+
+.table-borderless td {
+  vertical-align: top;
+}
+
+.table-borderless td:first-child {
+  white-space: nowrap;
+  width: 40%;
+}
+
+.text-wrap {
+  word-wrap: break-word;
+  word-break: break-word;
+  white-space: normal !important;
+}
+</style>
