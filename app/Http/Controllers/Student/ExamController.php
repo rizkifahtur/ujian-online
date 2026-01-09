@@ -199,6 +199,17 @@ class ExamController extends Controller
             $duration->save();
         }
 
+        // get current violation count from database
+        $violation = ExamViolation::where('exam_id', $exam_group->exam->id)
+            ->where('exam_session_id', $exam_group->exam_session->id)
+            ->where('student_id', auth()->guard('student')->user()->id)
+            ->first();
+
+        $currentViolationCount = 0;
+        if ($violation && $violation->status === 'active') {
+            $currentViolationCount = $violation->violation_count;
+        }
+
         // return with inertia
         return inertia('Student/Exams/Show', [
             'id' => (int) $id,
@@ -209,6 +220,7 @@ class ExamController extends Controller
             'question_active' => $question_active,
             'answer_order' => $answer_order,
             'duration' => $duration,
+            'current_violation_count' => $currentViolationCount,
         ]);
     }
 

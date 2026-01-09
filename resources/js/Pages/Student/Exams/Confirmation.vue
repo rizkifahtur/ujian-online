@@ -132,4 +132,47 @@ export default {
 };
 </script>
 
-<style></style>
+<style scoped>
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .row {
+    margin: 0;
+  }
+
+  .col-md-6 {
+    padding: 0 10px;
+    margin-bottom: 15px;
+  }
+
+  .card {
+    margin-bottom: 15px;
+  }
+
+  .card-body {
+    padding: 15px;
+  }
+
+  .card-body h5 {
+    font-size: 16px;
+  }
+
+  .table td {
+    padding: 10px 8px;
+    font-size: 14px;
+  }
+
+  .table td:first-child {
+    width: 40%;
+    white-space: nowrap;
+  }
+
+  .table td:last-child {
+    word-break: break-word;
+  }
+
+  .btn {
+    padding: 12px 20px;
+    font-size: 14px;
+  }
+}
+</style>

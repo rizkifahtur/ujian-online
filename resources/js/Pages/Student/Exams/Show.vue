@@ -27,7 +27,9 @@
               </div>
               <div>
                 <VueCountdown
+                  v-if="duration > 0"
                   :time="duration"
+                  :auto-start="true"
                   @progress="handleChangeDuration"
                   @end="showModalEndTimeExam = true"
                   v-slot="{ hours, minutes, seconds }"
@@ -36,6 +38,7 @@
                     <i class="fa fa-clock"></i> {{ hours }} jam, {{ minutes }} menit, {{ seconds }} detik.</span
                   >
                 </VueCountdown>
+                <span v-else class="badge bg-danger p-2"> <i class="fa fa-clock"></i> Waktu Habis </span>
               </div>
             </div>
           </div>
@@ -241,6 +244,7 @@ export default {
     question_active: Object,
     answer_order: Array,
     duration: Object,
+    current_violation_count: Number,
   },
 
   //composition API
@@ -251,8 +255,13 @@ export default {
     //define state counter
     const counter = ref(0);
 
-    //define state duration
-    const duration = ref(props.duration ? props.duration.duration : 3600000);
+    //define state duration - pastikan nilai numerik valid
+    const initialDuration = props.duration?.duration || props.duration || 3600000;
+    const duration = ref(typeof initialDuration === 'number' ? initialDuration : parseInt(initialDuration) || 3600000);
+
+    // Debug log untuk mobile
+    console.log('Duration props:', props.duration);
+    console.log('Initial duration value:', duration.value);
 
     //define current page reactive
     const currentPage = ref(props.page);
@@ -271,12 +280,12 @@ export default {
     });
 
     //define state untuk fullscreen prompt
-    // Di mobile, skip fullscreen prompt karena fullscreen API sering tidak didukung
+    // Fullscreen prompt untuk semua device (termasuk mobile)
     const isMobile = ref(
       window.innerWidth <= 768 ||
         /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
     );
-    const showFullscreenPrompt = ref(!isMobile.value);
+    const showFullscreenPrompt = ref(true);
 
     //define state untuk flag apakah sedang submit
     const isSubmitting = ref(false);
@@ -317,11 +326,14 @@ export default {
       }
     };
 
-    const tabSwitchCount = ref(0);
+    const tabSwitchCount = ref(props.current_violation_count || 0);
     const isLocked = ref(false);
     const lockdownSeconds = props.exam_group?.exam?.lockdown_duration || 30;
     const maxViolations = props.exam_group?.exam?.max_violations || 3;
     const enableLockdown = props.exam_group?.exam?.enable_lockdown !== 'N';
+
+    // Debug log
+    console.log('Initial violation count from DB:', props.current_violation_count);
 
     const logViolationToServer = (violationType, count) => {
       const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
@@ -471,6 +483,8 @@ export default {
 
     // Inisialisasi pada mount
     onMounted(() => {
+      console.log('Component mounted, duration:', duration.value, 'isMobile:', isMobile.value);
+
       // Block browser back button
       history.pushState(null, '', location.href);
       window.addEventListener('popstate', function () {
@@ -485,6 +499,7 @@ export default {
         });
       });
 
+      // Fullscreen event listeners untuk semua device
       document.addEventListener('fullscreenchange', handleFullscreenChange);
       document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
       document.addEventListener('msfullscreenchange', handleFullscreenChange);
@@ -505,12 +520,19 @@ export default {
       window.removeEventListener('beforeunload', blockNavigation);
       document.removeEventListener('keydown', handleKeydown);
       document.removeEventListener('contextmenu', handleContextMenu);
-      if (document.exitFullscreen) {
-        document.exitFullscreen();
-      } else if (document.webkitExitFullscreen) {
-        document.webkitExitFullscreen();
-      } else if (document.msExitFullscreen) {
-        document.msExitFullscreen();
+      // Exit fullscreen
+      try {
+        if (document.fullscreenElement) {
+          if (document.exitFullscreen) {
+            document.exitFullscreen();
+          } else if (document.webkitExitFullscreen) {
+            document.webkitExitFullscreen();
+          } else if (document.msExitFullscreen) {
+            document.msExitFullscreen();
+          }
+        }
+      } catch (e) {
+        console.warn('Exit fullscreen failed:', e);
       }
     };
 
@@ -634,6 +656,24 @@ export default {
 
       if (blockedKeys.includes(event.key)) {
         event.preventDefault();
+        Swal.fire({
+          title: 'Tidak Diizinkan!',
+          text: 'Anda tidak dapat melakukan refresh halaman saat ujian berlangsung.',
+          icon: 'warning',
+          confirmButtonText: 'OK',
+        });
+        return;
+      }
+
+      // Block Ctrl+R / Cmd+R (refresh)
+      if ((event.ctrlKey || event.metaKey) && (event.key === 'r' || event.key === 'R')) {
+        event.preventDefault();
+        Swal.fire({
+          title: 'Tidak Diizinkan!',
+          text: 'Anda tidak dapat melakukan refresh halaman saat ujian berlangsung.',
+          icon: 'warning',
+          confirmButtonText: 'OK',
+        });
         return;
       }
 
@@ -738,16 +778,17 @@ export default {
 /* Mobile Responsive Styles */
 @media (max-width: 768px) {
   .wrapper {
-    padding: 5px;
+    padding: 10px;
   }
 
   .wrapper .row {
-    margin: 0;
+    margin: 0 -5px;
   }
 
   .wrapper .col-md-7,
   .wrapper .col-md-5 {
     padding: 5px;
+    margin-bottom: 10px;
   }
 
   .wrapper .card {
@@ -755,24 +796,25 @@ export default {
   }
 
   .wrapper .card-header {
-    padding: 10px;
+    padding: 12px 15px;
   }
 
   .wrapper .card-header h5 {
-    font-size: 14px;
+    font-size: 15px;
   }
 
   .wrapper .card-header .badge {
-    font-size: 11px;
-    padding: 5px 8px !important;
+    font-size: 12px;
+    padding: 6px 10px !important;
   }
 
   .wrapper .card-body {
-    padding: 10px;
+    padding: 15px;
   }
 
   .wrapper .card-body p {
     font-size: 14px;
+    line-height: 1.6;
   }
 
   .wrapper .card-body table {
@@ -780,32 +822,32 @@ export default {
   }
 
   .wrapper .card-body table td {
-    padding: 5px !important;
+    padding: 8px !important;
     vertical-align: top;
   }
 
   .wrapper .card-body table td:first-child {
-    width: 40px !important;
+    width: 45px !important;
   }
 
   .wrapper .card-body table button {
-    padding: 5px 10px;
-    font-size: 12px;
+    padding: 8px 12px;
+    font-size: 13px;
   }
 
   .wrapper .card-footer {
-    padding: 10px;
+    padding: 12px 15px;
   }
 
   .wrapper .card-footer .btn {
-    font-size: 12px;
-    padding: 8px 12px;
+    font-size: 13px;
+    padding: 10px 15px;
   }
 
   /* Question navigation */
   .wrapper .col-md-5 .card-body {
     height: auto !important;
-    max-height: 200px;
+    max-height: 250px;
   }
 
   .wrapper .col-md-5 .card-body > div > div {
@@ -813,13 +855,13 @@ export default {
   }
 
   .wrapper .col-md-5 .card-body button {
-    font-size: 11px;
-    padding: 5px;
+    font-size: 12px;
+    padding: 8px;
   }
 
   .fullscreen-modal {
-    padding: 20px;
-    margin: 15px;
+    padding: 25px;
+    margin: 20px;
   }
 
   .fullscreen-modal h3 {
@@ -833,7 +875,7 @@ export default {
 
   .fullscreen-modal .btn {
     font-size: 14px;
-    padding: 10px 20px;
+    padding: 12px 24px;
   }
 }
 

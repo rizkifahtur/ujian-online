@@ -45,13 +45,32 @@ class ExamViolationController extends Controller
             'reason' => 'required|string|max:500',
         ]);
 
+        // Jika status active (siswa masih ujian) -> reset violation count
+        if ($exam_violation->status === 'active') {
+            $exam_violation->update([
+                'violation_count' => 0,
+                'status' => 'forgiven',
+                'forgiven_by' => Auth::id(),
+                'forgiven_at' => now(),
+                'forgiven_reason' => $request->reason,
+                'description' => 'Pelanggaran direset oleh admin: ' . $request->reason,
+            ]);
+
+            return redirect()
+                ->route('admin.exam_violations.index')
+                ->with('success', 'Pelanggaran siswa telah direset. Siswa dapat melanjutkan ujian.');
+        }
+
+        // Jika status ended (ujian diakhiri) -> izinkan lanjut ujian
         $exam_violation->update([
+            'violation_count' => 0,
             'status' => 'forgiven',
             'forgiven_by' => Auth::id(),
             'forgiven_at' => now(),
             'forgiven_reason' => $request->reason,
         ]);
 
+        // Reset end_time di grade agar siswa bisa lanjut
         $grade = Grade::where('exam_id', $exam_violation->exam_id)
             ->where('exam_session_id', $exam_violation->exam_session_id)
             ->where('student_id', $exam_violation->student_id)
