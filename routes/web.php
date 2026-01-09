@@ -76,6 +76,15 @@ Route::prefix('admin')->group(function () {
 
         //route index reports export
         Route::get('/reports/export', [\App\Http\Controllers\Admin\ReportController::class, 'export'])->name('admin.reports.export');
+
+        //route grades by lesson
+        Route::get('/grades-by-lesson', [\App\Http\Controllers\Admin\GradesByLessonController::class, 'index'])->name('admin.grades_by_lesson.index');
+        
+        //route grades by lesson show
+        Route::get('/grades-by-lesson/{lesson}', [\App\Http\Controllers\Admin\GradesByLessonController::class, 'show'])->name('admin.grades_by_lesson.show');
+        
+        //route grades by lesson export
+        Route::get('/grades-by-lesson/{lesson}/export', [\App\Http\Controllers\Admin\GradesByLessonController::class, 'export'])->name('admin.grades_by_lesson.export');
     });
 });
 

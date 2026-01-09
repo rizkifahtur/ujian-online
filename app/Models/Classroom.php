@@ -18,4 +18,14 @@ class Classroom extends Model
     protected $fillable = [
         'title',
     ];
+
+    /**
+     * exams
+     *
+     * @return void
+     */
+    public function exams()
+    {
+        return $this->hasMany(Exam::class);
+    }
 }
