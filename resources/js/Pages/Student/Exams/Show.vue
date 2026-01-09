@@ -272,7 +272,10 @@ export default {
 
     //define state untuk fullscreen prompt
     // Di mobile, skip fullscreen prompt karena fullscreen API sering tidak didukung
-    const isMobile = ref(window.innerWidth <= 768 || /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent));
+    const isMobile = ref(
+      window.innerWidth <= 768 ||
+        /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+    );
     const showFullscreenPrompt = ref(!isMobile.value);
 
     //define state untuk flag apakah sedang submit
