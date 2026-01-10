@@ -286,9 +286,14 @@ export default {
         /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
     );
     const showFullscreenPrompt = ref(true);
+    const examStarted = ref(false); // Flag untuk menandai ujian sudah dimulai
 
     //define state untuk flag apakah sedang submit
     const isSubmitting = ref(false);
+
+    // Untuk menghitung waktu yang akurat di mobile (timestamp-based)
+    const startTimestamp = ref(Date.now());
+    const initialDurationMs = ref(duration.value);
 
     // Fullscreen logic
     const forceFullscreen = () => {
@@ -433,17 +438,34 @@ export default {
 
     const handleVisibilityChange = () => {
       if (!enableLockdown) return;
+      if (!examStarted.value) return; // Jangan trigger lockdown sebelum ujian dimulai
       if (showFullscreenPrompt.value) return;
       if (isSubmitting.value) return;
       if (isLocked.value) return;
 
       if (document.visibilityState === 'hidden') {
         showLockdownAlert();
+      } else if (document.visibilityState === 'visible' && isMobile.value) {
+        // Saat kembali ke halaman di mobile, sinkronkan waktu
+        syncDurationOnVisibility();
+      }
+    };
+
+    // Sinkronkan durasi berdasarkan timestamp saat kembali ke halaman
+    const syncDurationOnVisibility = () => {
+      const elapsed = Date.now() - startTimestamp.value;
+      const newDuration = initialDurationMs.value - elapsed;
+      if (newDuration > 0) {
+        duration.value = newDuration;
+      } else {
+        duration.value = 0;
+        showModalEndTimeExam.value = true;
       }
     };
 
     const handleWindowBlur = () => {
       if (!enableLockdown) return;
+      if (!examStarted.value) return; // Jangan trigger lockdown sebelum ujian dimulai
       if (showFullscreenPrompt.value) return;
       if (isSubmitting.value) return;
       if (isLocked.value) return;
@@ -474,11 +496,15 @@ export default {
         } else if (el.msRequestFullscreen) {
           el.msRequestFullscreen();
         }
-        showFullscreenPrompt.value = false;
       } catch (error) {
         console.warn('Fullscreen failed:', error);
-        showFullscreenPrompt.value = false;
       }
+
+      // Mulai ujian dan set timestamp
+      showFullscreenPrompt.value = false;
+      examStarted.value = true;
+      startTimestamp.value = Date.now();
+      initialDurationMs.value = duration.value;
     };
 
     // Inisialisasi pada mount
@@ -538,8 +564,19 @@ export default {
 
     //handleChangeDuration
     const handleChangeDuration = () => {
-      //decrement duration
-      duration.value = duration.value - 1000;
+      // Di mobile, gunakan timestamp-based calculation untuk akurasi
+      if (isMobile.value && examStarted.value) {
+        const elapsed = Date.now() - startTimestamp.value;
+        const calculatedDuration = initialDurationMs.value - elapsed;
+        if (calculatedDuration > 0) {
+          duration.value = calculatedDuration;
+        } else {
+          duration.value = 0;
+        }
+      } else {
+        //decrement duration
+        duration.value = duration.value - 1000;
+      }
 
       //increment counter
       counter.value = counter.value + 1;
